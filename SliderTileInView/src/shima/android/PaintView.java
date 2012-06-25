@@ -59,7 +59,8 @@ public class PaintView extends View {
 		paint.setColor(Color.RED);
 		path = new Path();
 		Resources r = getResources();
-		bitmap = BitmapFactory.decodeResource(r, R.drawable.android);
+//		bitmap = BitmapFactory.decodeResource(r, R.drawable.android);
+		bitmap = BitmapFactory.decodeResource(r, R.drawable.bg1);
 
 	}
 	@Override protected void onSizeChanged(int w, int h, int pw, int ph) {
@@ -95,6 +96,11 @@ public class PaintView extends View {
 		List<TileRect> tileRects = createTileRects(rows, cols, bw, bh, m);
 		for (TileRect t : tileRects) {
 			canvas.drawBitmap(bitmap, t.src, t.dst, null);
+		}
+		paint.setXfermode(eraserMode);
+		paint.setAlpha(0);
+		for (TileRect t : tileRects) {
+			canvas.drawRect(t.dst, paint);
 		}
 		
 //		canvas.drawBitmap(bitmap, m, null);
@@ -162,6 +168,7 @@ public class PaintView extends View {
 		return true;
 	}
 	boolean setPenColor(int color) {
+		color = Color.GREEN;
 		if (penType == PenType.PEN) {
 			paint.setColor(color);
 			return true;
@@ -169,6 +176,7 @@ public class PaintView extends View {
 		return false;
 	}
 	void setBgColor(int color) {
+		color = Color.RED;
 		if (backgroundView != null) {
 			backgroundView.setImageDrawable(null);
 			backgroundView.setBackgroundColor(color);
