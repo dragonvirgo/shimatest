@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Doodle with Eraser</string>
+    
+    <item type="id" name="penOrEraser"></item>
+    <item type="id" name="penColors"></item>
+    <item type="id" name="bgColors"></item>
+    <integer-array name="penOrEraser">
+        <item>@drawable/pen</item>
+        <item>@drawable/eraser</item>
+    </integer-array>
+    <integer-array name="penColors">
+        <item>@drawable/blue</item>
+        <item>@drawable/red</item>
+        <item>@drawable/green</item>
+        <item>@drawable/black</item>
+    </integer-array>
+    <integer-array name="bgColors">
+        <item>@drawable/black</item>
+        <item>@drawable/red</item>
+        <item>@drawable/green</item>
+        <item>@drawable/blue</item>
+        <item>@drawable/bg1</item>
+        <item>@drawable/bg2</item>
+        <item>@drawable/bg3</item>
+    </integer-array>
+</resources>
