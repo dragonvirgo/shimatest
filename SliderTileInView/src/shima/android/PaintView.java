@@ -41,10 +41,8 @@ public class PaintView extends View {
 	private PorterDuffXfermode dstATop = new PorterDuffXfermode(PorterDuff.Mode.DST_ATOP);
 	private PorterDuffXfermode srcIn = new PorterDuffXfermode(PorterDuff.Mode.SRC_IN); //ok
 	
-	Bitmap bitmap;
-	float vw, vh;
+	private Board board;
 	
-
 	public PaintView(Context context) { this(context, null); }
 	public PaintView(Context context, AttributeSet attrs) {
 		super(context, attrs);
@@ -58,74 +56,66 @@ public class PaintView extends View {
 		paint.setStrokeWidth(20);
 		paint.setColor(Color.RED);
 		path = new Path();
-		Resources r = getResources();
-//		bitmap = BitmapFactory.decodeResource(r, R.drawable.android);
-		bitmap = BitmapFactory.decodeResource(r, R.drawable.bg1);
-
 	}
 	@Override protected void onSizeChanged(int w, int h, int pw, int ph) {
 		super.onSizeChanged(w, h, pw, ph);
 		offScreenBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
 		offScreenCanvas = new Canvas(offScreenBitmap);
 		
-		vw = w; vh = h;
+		Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.bg1);
+		board = new Board(bitmap, 4, 3);
+		board.setTiles(w, h);
+		board.shuffle();
+		
 	}
 	@Override protected void onDraw(Canvas canvas) {
 		offScreenCanvas.drawPath(path, paint);
 		canvas.drawBitmap(offScreenBitmap, 0, 0, null);
 		//--
-		int rows = 4, cols = 3;
-		float bw = bitmap.getWidth(); float bh = bitmap.getHeight();
-		Log.d(TAG, "vw=" + vw + ", vh=" + vh);
-		Log.d(TAG, "bw=" + bw + ", bh=" + bh);
-		
-		float ratiov = vw/vh;
-		float ratiob = bw/bh;
-		float scale;
-		float dx = 0f, dy = 0f;
-		if (ratiov > ratiob) { // tate fit
-			scale = vh/bh;
-			dx = (vw - scale*bw) / 2f;
-		} else {
-			scale = vw/bw;
-			dy = (vh - scale*bh) / 2f;
-		}
-		Matrix m = new Matrix();
-		m.setScale(scale, scale);
-		m.postTranslate(dx, dy);
-		List<TileRect> tileRects = createTileRects(rows, cols, bw, bh, m);
-		for (TileRect t : tileRects) {
-			canvas.drawBitmap(bitmap, t.src, t.dst, null);
+		for (Tile t : board.tiles) {
+			canvas.drawBitmap(board.bitmap, t.src, t.dst, null);
 		}
 		paint.setXfermode(eraserMode);
 		paint.setAlpha(0);
-		for (TileRect t : tileRects) {
+		for (Tile t : board.tiles) {
 			canvas.drawRect(t.dst, paint);
 		}
 		
 //		canvas.drawBitmap(bitmap, m, null);
-		canvas.drawBitmap(bitmap, 0, 0, null);
+		canvas.drawBitmap(board.bitmap, 0, 0, null);
 	}
-	List<TileRect> createTileRects(int rows, int cols, float w, float h, Matrix m) {
-		List<TileRect> list = new ArrayList<TileRect>();
-		float dx = w/cols, dy = h/rows;
-		float top=0f, bottom=dy;
-		for (int i=0; i<rows; i++) {
-			float left = 0f;
-			float right = dx;
-			for (int j=0; j<cols; j++) {
-				RectF src = new RectF(left, top, right, bottom);
-				RectF dst = new RectF();
-				m.mapRect(dst, src);
-				list.add(new TileRect(src, dst));
-				left = right;
-				right += dx;
-			}
-			top = bottom;
-			bottom += dy;
-		}
-		return list;
-	}
+//	List<Tile> createTileRects(int rows, int cols, float w, float h, Matrix m) {
+//		List<Tile> list = new ArrayList<Tile>();
+//		float dx = w/cols, dy = h/rows;
+//		float top=0f, bottom=dy;
+//		for (int i=0; i<rows; i++) {
+//			float left = 0f, right = dx;
+//			for (int j=0; j<cols; j++) {
+//				RectF src = new RectF(left, top, right, bottom);
+//				RectF dst = new RectF();
+//				m.mapRect(dst, src);
+//				list.add(new Tile(src, dst));
+//				left = right; right += dx;
+//			}
+//			top = bottom; bottom += dy;
+//		}
+//		return list;
+//	}
+//	Matrix adjustingMatrix(float srcWidth, float srcHeight, float dstWidth, float dstHeight) {
+//		float scale;
+//		float dx = 0f, dy = 0f;
+//		if (dstWidth/dstHeight > srcWidth/srcHeight) {	// vertically fit
+//			scale = dstHeight/srcHeight;
+//			dx = (dstWidth - scale*srcWidth) / 2f;
+//		} else {										// horizontally fit
+//			scale = dstWidth/srcWidth;
+//			dy = (dstHeight - scale*srcHeight) / 2f;
+//		}
+//		Matrix matrix = new Matrix();
+//		matrix.setScale(scale, scale);
+//		matrix.postTranslate(dx, dy);
+//		return matrix;
+//	}
 	@Override public boolean onTouchEvent(MotionEvent e) {
 		float x = e.getX(); float y = e.getY();
 		switch (e.getAction()) {
