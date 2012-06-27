@@ -13,6 +13,7 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
@@ -33,7 +34,6 @@ public class PaintView extends View {
 	private ImageView backgroundView;
 	private Paint paint;
 	private Path path;
-	private PointF prev = new PointF();
 	public enum PenType { PEN, ERASER } PenType penType = PenType.PEN;
 	private PorterDuffXfermode eraserMode = new PorterDuffXfermode(PorterDuff.Mode.CLEAR); //ok
 	private PorterDuffXfermode dstOver = new PorterDuffXfermode(PorterDuff.Mode.DST_OVER); //ok
@@ -41,7 +41,13 @@ public class PaintView extends View {
 	private PorterDuffXfermode dstATop = new PorterDuffXfermode(PorterDuff.Mode.DST_ATOP);
 	private PorterDuffXfermode srcIn = new PorterDuffXfermode(PorterDuff.Mode.SRC_IN); //ok
 	
+	private Point cp = new Point();
+	private Point pp = new Point();
 	private Board board;
+	private List<Tile> movables = new ArrayList();
+	private Rect invalidated;
+	private Point limiter;
+	private Point dt;
 	
 	public PaintView(Context context) { this(context, null); }
 	public PaintView(Context context, AttributeSet attrs) {
@@ -53,7 +59,7 @@ public class PaintView extends View {
 		paint.setStyle(Paint.Style.STROKE);
 		paint.setStrokeJoin(Paint.Join.ROUND);
 		paint.setStrokeCap(Paint.Cap.ROUND);
-		paint.setStrokeWidth(20);
+		paint.setStrokeWidth(4);
 		paint.setColor(Color.RED);
 		path = new Path();
 	}
@@ -68,22 +74,60 @@ public class PaintView extends View {
 		board.shuffle();
 		
 	}
+	Point getDt(Point prev, Point curr, Point limi) {
+		
+		return null;
+	}
+	@Override public boolean onTouchEvent(MotionEvent e) {
+		cp.x = (int)e.getX(); cp.y = (int)e.getY();
+		switch (e.getAction()) {
+		case MotionEvent.ACTION_DOWN:
+//			path.reset();
+//			path.moveTo(x, y);
+			invalidated = board.getMovables(cp, movables, limiter);
+			break;
+		case MotionEvent.ACTION_MOVE:
+			if (invalidated == null) break;;
+			if (Math.abs(cp.x - pp.x) < TOLERANCE) break;;
+			if (Math.abs(cp.y - pp.y) < TOLERANCE) break;;
+			Point dt = getDt(pp, cp, limiter);
+			if (dt == null) break;
+			break;
+		case MotionEvent.ACTION_UP:
+//			path.lineTo(x, y);
+//			offScreenCanvas.drawPath(path, paint);
+			invalidated = null;
+			dt = null;
+			break;
+		}
+		pp.x = cp.x; pp.y = cp.y;
+		invalidate();
+		return true;
+	}
 	@Override protected void onDraw(Canvas canvas) {
 		offScreenCanvas.drawPath(path, paint);
 		canvas.drawBitmap(offScreenBitmap, 0, 0, null);
 		//--
-		for (Tile t : board.tiles) {
-			canvas.drawBitmap(board.bitmap, t.src, t.dst, null);
-		}
-		paint.setXfermode(eraserMode);
-		paint.setAlpha(0);
-		for (Tile t : board.tiles) {
-			canvas.drawRect(t.dst, paint);
+		if (invalidated == null) {
+			for (Tile t : board.tiles) {
+				if (board.logicalBoard.hole == t.logicalTile) continue;
+				canvas.drawBitmap(board.bitmap, t.src, t.dst, null);
+			}
+			paint.setXfermode(eraserMode);
+			paint.setAlpha(0);
+			for (Tile t : board.tiles) {
+				canvas.drawRect(t.dst, paint);
+			}
+		} else {
+			for (Tile t : movables) {
+				Rect translated = Utils.translated(t.dst, dt);
+				canvas.drawBitmap(board.bitmap, t.src, translated, null);
+			}
 		}
 		
-//		canvas.drawBitmap(bitmap, m, null);
-		canvas.drawBitmap(board.bitmap, 0, 0, null);
+//		canvas.drawBitmap(board.bitmap, 0, 0, null);
 	}
+
 //	List<Tile> createTileRects(int rows, int cols, float w, float h, Matrix m) {
 //		List<Tile> list = new ArrayList<Tile>();
 //		float dx = w/cols, dy = h/rows;
@@ -116,27 +160,7 @@ public class PaintView extends View {
 //		matrix.postTranslate(dx, dy);
 //		return matrix;
 //	}
-	@Override public boolean onTouchEvent(MotionEvent e) {
-		float x = e.getX(); float y = e.getY();
-		switch (e.getAction()) {
-		case MotionEvent.ACTION_DOWN:
-			path.reset();
-			path.moveTo(x, y);
-			break;
-		case MotionEvent.ACTION_MOVE:
-			if (Math.abs(x - prev.x) >= TOLERANCE || Math.abs(y - prev.y) >= TOLERANCE) {
-				path.quadTo(prev.x, prev.y, (prev.x + x) / 2, (prev.y + y) / 2);
-			}
-			break;
-		case MotionEvent.ACTION_UP:
-			path.lineTo(x, y);
-//			offScreenCanvas.drawPath(path, paint);
-			break;
-		}
-		prev.x = x; prev.y = y;
-		invalidate();
-		return true;
-	}
+
 	boolean setPenType(PenType type) {
 		if (type == penType) return false;
 		switch (penType = type) {

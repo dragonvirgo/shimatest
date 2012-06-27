@@ -34,8 +34,21 @@ public class Board {
 		logicalBoard = new LogicalBoard(rows=r, cols=c);
 	}
 	void setTiles(int viewWidth, int viewHeight) {
-		Matrix m = adjustingMatrix(bitmap.getWidth(), bitmap.getHeight(), viewWidth, viewHeight);
+		Matrix m = Utils.adjustingMatrix(bitmap.getWidth(), bitmap.getHeight(), viewWidth, viewHeight);
 		tiles = createTiles(rows, cols, bitmap.getWidth(), bitmap.getHeight(), m);
+	}
+	Rect getMovables(Point p, List<Tile> movables, Point limiter) {
+		LogicalTile lt = null;;
+		for (Tile t : tiles) {
+			if (t.dst.contains(p.x, p.y)) { lt = t.logicalTile; break; }
+		}
+		if (lt == null) return null;
+		List<LogicalTile> lgTiles = logicalBoard.getMovables(lt);
+		// logicalTile-->Tileのマップが必要。
+		// lgTilesからtilesを抽出。リストの最後はholeなので除外
+		// limiterを計算
+		if (lgTiles == null) return null;
+		return null;
 	}
 	void shuffle() {
 		logicalBoard.shuffle();
@@ -63,20 +76,5 @@ public class Board {
 			top = bottom; bottom += dy;
 		}
 		return list;
-	}
-	private static Matrix adjustingMatrix(float srcWidth, float srcHeight, float dstWidth, float dstHeight) {
-		float scale;
-		float dx = 0f, dy = 0f;
-		if (dstWidth/dstHeight > srcWidth/srcHeight) {	// vertically fit
-			scale = dstHeight/srcHeight;
-			dx = (dstWidth - scale*srcWidth) / 2f;
-		} else {										// horizontally fit
-			scale = dstWidth/srcWidth;
-			dy = (dstHeight - scale*srcHeight) / 2f;
-		}
-		Matrix matrix = new Matrix();
-		matrix.setScale(scale, scale);
-		matrix.postTranslate(dx, dy);
-		return matrix;
 	}
 }

@@ -96,7 +96,18 @@ public class LogicalBoard {
 		for (int i=0; i<maxSlide; i++) {
 			previous = slideTileAtRandom(previous);
 			if (distance >= totalDistance) break;
-			print();
+			//print(); // for debug
+		}
+		return null;
+	}
+	List<LogicalTile> getMovables(LogicalTile lgTile) {
+		Point h = hole.lp; Point t = lgTile.lp;
+		if (h.x == t.x) {
+			
+		} else if (h.y == t.y) {
+			
+		} else {
+			
 		}
 		return null;
 	}
