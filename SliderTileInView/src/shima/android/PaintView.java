@@ -28,7 +28,8 @@ import android.widget.ImageView;
 
 public class PaintView extends View {
 	private static final String TAG = PaintView.class.getSimpleName();
-	private static final float TOLERANCE = 6;
+//	private static final float TOLERANCE = 6;
+	private static final int TOLERANCE = 0;
 	private Bitmap offScreenBitmap;
 	private Canvas offScreenCanvas;
 	private ImageView backgroundView;
@@ -43,10 +44,11 @@ public class PaintView extends View {
 	
 	private Point cp = new Point();
 	private Point pp = new Point();
+	private Point dp = new Point();
 	private Board board;
 	private List<Tile> movables = new ArrayList();
 	private Rect invalidated;
-	private Point limiter;
+	private Point limiter = new Point();;
 	private Point dt;
 	
 	public PaintView(Context context) { this(context, null); }
@@ -74,9 +76,39 @@ public class PaintView extends View {
 		board.shuffle();
 		
 	}
-	Point getDt(Point prev, Point curr, Point limi) {
-		
-		return null;
+//	Point getDt(Point prev, Point curr, Point lim) {
+//		int x = curr.x - prev.x;
+//		int y = curr.y - prev.y;
+//		if (Math.abs(x) < TOLERANCE || Math.abs(y) < TOLERANCE) return null;
+//		Point dt = new Point(x, y);
+//		if (lim.x == 0) {
+//			dt.x = 0;
+//			if (lim.y < 0) {
+//				if (dt.y < lim.y) dt.y = lim.y;
+//				if (dt.y > 0) dt.y = 0;
+//			} else {
+//				if (dt.y > lim.y) dt.y = lim.y;
+//				if (dt.y < 0) dt.y = 0;
+//			}
+//		} else {
+//			dt.y = 0;
+//			if (lim.x < 0) {
+//				if (dt.x < lim.x) dt.x = lim.x;
+//				if (dt.x > 0) dt.x = 0;
+//			} else {
+//				if (dt.x > lim.x) dt.x = lim.x;
+//				if (dt.x < 0) dt.x = 0;
+//			}
+//		}
+//		return dt;
+//	}
+	Rect translateRect(Rect r, Point offset) {
+		Rect ret = new Rect(r);
+		ret.left += offset.x;
+		ret.top += offset.y;
+		ret.right += offset.x;
+		ret.bottom += offset.y;
+		return ret;
 	}
 	@Override public boolean onTouchEvent(MotionEvent e) {
 		cp.x = (int)e.getX(); cp.y = (int)e.getY();
@@ -84,14 +116,18 @@ public class PaintView extends View {
 		case MotionEvent.ACTION_DOWN:
 //			path.reset();
 //			path.moveTo(x, y);
-			invalidated = board.getMovables(cp, movables, limiter);
+			dp.x = cp.x; dp.y = cp.y;
+			invalidated = board.getMovables(dp, movables, limiter);
+			
 			break;
 		case MotionEvent.ACTION_MOVE:
 			if (invalidated == null) break;;
-			if (Math.abs(cp.x - pp.x) < TOLERANCE) break;;
-			if (Math.abs(cp.y - pp.y) < TOLERANCE) break;;
-			Point dt = getDt(pp, cp, limiter);
+			dt = Utils.getAdjustedVector(dp, cp, limiter, TOLERANCE);
 			if (dt == null) break;
+//			for (Tile t : movables) {
+//				t.moving = translateRect(t.dst, dt);
+//			}
+			invalidate(invalidated);
 			break;
 		case MotionEvent.ACTION_UP:
 //			path.lineTo(x, y);
@@ -101,7 +137,7 @@ public class PaintView extends View {
 			break;
 		}
 		pp.x = cp.x; pp.y = cp.y;
-		invalidate();
+//		invalidate();
 		return true;
 	}
 	@Override protected void onDraw(Canvas canvas) {
@@ -112,6 +148,7 @@ public class PaintView extends View {
 			for (Tile t : board.tiles) {
 				if (board.logicalBoard.hole == t.logicalTile) continue;
 				canvas.drawBitmap(board.bitmap, t.src, t.dst, null);
+//				canvas.drawBitmap(board.bitmap, t.src, t.moving, null);
 			}
 			paint.setXfermode(eraserMode);
 			paint.setAlpha(0);
@@ -120,6 +157,7 @@ public class PaintView extends View {
 			}
 		} else {
 			for (Tile t : movables) {
+				Log.d(TAG, "t=" + t);
 				Rect translated = Utils.translated(t.dst, dt);
 				canvas.drawBitmap(board.bitmap, t.src, translated, null);
 			}
