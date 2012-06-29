@@ -46,13 +46,39 @@ public class Utils {
 		}
 		return vec;
 	}
-	public static Rect translated(Rect src, Point offset) {
-		Rect dst = new Rect(src);
-		if (offset == null) return dst;
-		dst.top		+= offset.y;
-		dst.left	+= offset.x;
-		dst.bottom	+= offset.y;
-		dst.right	+= offset.x;
+	public static Rect scaleByBorder(int borderWidth, Rect src, Rect dst) {
+		dst.left	= -borderWidth + src.left;
+		dst.top		= -borderWidth + src.top;
+		dst.right	=  borderWidth + src.right;
+		dst.bottom	=  borderWidth + src.bottom;
 		return dst;
 	}
+	public static Rect translateByVector(Point vec, Rect src, Rect dst) {
+		if (vec == null) return dst;
+		dst.left	= vec.x + src.left;
+		dst.top		= vec.y + src.top;
+		dst.right	= vec.x + src.right;
+		dst.bottom	= vec.y + src.bottom;
+		return dst;
+	}
+	public static Rect translateByVector(Point vec, Rect rect) {
+		if (vec == null) return rect;
+		rect.left	+= vec.x;
+		rect.top	+= vec.y;
+		rect.right	+= vec.x;
+		rect.bottom	+= vec.y;
+		return rect;
+	}
+	public static boolean slided(Point vec, Point limiter) {
+		return Math.abs(vec.x*2) > Math.abs(limiter.x) || Math.abs(vec.y*2) > Math.abs(limiter.y);
+	}
+//	public static Rect translated(Rect src, Point offset) {
+//		Rect dst = new Rect(src);
+//		if (offset == null) return dst;
+//		dst.top		+= offset.y;
+//		dst.left	+= offset.x;
+//		dst.bottom	+= offset.y;
+//		dst.right	+= offset.x;
+//		return dst;
+//	}
 }

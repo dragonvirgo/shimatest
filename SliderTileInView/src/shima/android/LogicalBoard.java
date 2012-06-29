@@ -79,7 +79,23 @@ public class LogicalBoard {
 		}
 		// 移動させるタイルを決定
 		LogicalTile target = nominees[random.nextInt(counter)];
+		slideTile(target);
+//		distance -= distance(target);	// 現状の離散度を減算
+//		// タイルを移動する
+//		Point t = target.lp;
+//		LogicalTile tmp = tiles[t.y][t.x];
+//		tiles[t.y][t.x] = tiles[h.y][h.x];
+//		tiles[h.y][h.x] = tmp;
+//		// 論理位置を付け替える
+//		target.lp = hole.lp;
+//		hole.lp = t;
+//		footprints.add(t);				// 棋譜に追加
+//		distance += distance(target);	// 新しい離散度を加算
+		return target;
+	}
+	LogicalTile slideTile(LogicalTile target) {
 		distance -= distance(target);	// 現状の離散度を減算
+		Point h = hole.lp;
 		// タイルを移動する
 		Point t = target.lp;
 		LogicalTile tmp = tiles[t.y][t.x];
